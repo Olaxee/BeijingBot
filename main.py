@@ -54,24 +54,20 @@ class TicketOpenView(discord.ui.View):
         )
 
         # =========================
-        # 💬 MESSAGE DANS TICKET
+        # 💬 MESSAGE EXACT DEMANDÉ
         # =========================
+
         embed = discord.Embed(
-            title="🎫 Ticket ouvert",
-            description=f"""```
-@{user.name} @{role.name if role else "Modérateur"}
+            description=
+f"""**Ticket ouvert par** {user.mention}
 
-Ticket ouvert par : @{user.name}
-
-Raison : Contacter le staff
+Raison : **Contacter le staff**
 
 Merci d'avoir contacté le support.
-Décrivez votre problème puis attendez une réponse.
-```""",
+Décrivez votre problème puis attendez de recevoir une réponse.
+""",
             color=discord.Color.green()
         )
-
-        embed.set_footer(text="Système de tickets")
 
         await channel.send(
             content=f"{user.mention} {(role.mention if role else '')}",
@@ -79,10 +75,10 @@ Décrivez votre problème puis attendez une réponse.
             view=TicketCloseView()
         )
 
-        # ❌ PLUS DE MESSAGE PUBLIC (corrigé)
+        # message uniquement pour l'utilisateur
         await interaction.response.send_message(
-            f"🎫 Ton ticket a été créé : {channel.mention}",
-            ephemeral=True  # 👈 uniquement utilisateur
+            f"🎫 Ticket créé : {channel.mention}",
+            ephemeral=True
         )
 
 
