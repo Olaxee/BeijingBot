@@ -3,10 +3,13 @@ import os
 import re
 import asyncio
 import shlex
+from datetime import datetime
+import pytz
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guilds = True
+intents.members = True
 
 client = discord.Client(intents=intents)
 
@@ -114,16 +117,17 @@ class ConfirmCloseView(discord.ui.View):
 
         await interaction.message.delete()
 
-        embed = discord.Embed(
-            description="❌ Annulé : fermeture du ticket annulée.",
-            color=discord.Color.red()
+        await interaction.response.send_message(
+            embed=discord.Embed(
+                description="❌ Annulé",
+                color=discord.Color.red()
+            ),
+            ephemeral=True
         )
-
-        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 # =========================
-# 💬 +EMBED (FIX RETOURS LIGNE + PARSING PRO)
+# 💬 +EMBED (inchangé stable)
 # =========================
 @client.event
 async def on_message(message):
@@ -136,27 +140,16 @@ async def on_message(message):
 
     bot_user = guild.me if guild else client.user
 
-    # =========================
-    # ℹ AIDE
-    # =========================
     def help_embed():
         return discord.Embed(
             title="ℹ Utilisation +embed",
             description=(
                 "Syntaxe :\n"
-                "**+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"**\n\n"
-                "✔ Les retours à la ligne fonctionnent\n"
-                "✔ Markdown autorisé\n"
-                "✔ Utilise `\"<->\"` pour ignorer un champ\n\n"
-                "Exemple :\n"
-                "`+embed \"Hello\\nWorld\" \"#ff0000\" \"Titre\" \"Footer\" \"https://image.png\"`"
+                "**+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"**"
             ),
             color=discord.Color.orange()
         )
 
-    # =========================
-    # ❌ PAS DE ROLE
-    # =========================
     if message.content.startswith("+embed") and role not in message.author.roles:
         return await message.channel.send(
             embed=discord.Embed(
@@ -165,9 +158,6 @@ async def on_message(message):
             )
         )
 
-    # =========================
-    # +EMBED
-    # =========================
     if message.content.startswith("+embed"):
 
         content = message.content.replace("+embed", "").strip()
@@ -180,9 +170,6 @@ async def on_message(message):
         except:
             return await message.channel.send(embed=help_embed())
 
-        if len(args) < 1:
-            return await message.channel.send(embed=help_embed())
-
         text = args[0] if len(args) > 0 else "<->"
         color = args[1] if len(args) > 1 else "<->"
         header = args[2] if len(args) > 2 else "<->"
@@ -191,25 +178,20 @@ async def on_message(message):
 
         embed = discord.Embed()
 
-        # 📝 TEXT (RETOURS LIGNE OK)
         if text != "<->":
             embed.description = text.replace("\\n", "\n")
 
-        # 🎨 COLOR
         try:
             embed.color = int(color.replace("#", ""), 16) if color != "<->" else discord.Color.blue()
         except:
             embed.color = discord.Color.blue()
 
-        # 🧾 FOOTER
         if footer != "<->":
             embed.set_footer(text=footer)
 
-        # 🖼 IMAGE
         if image != "<->":
             embed.set_thumbnail(url=image)
 
-        # 🤖 AUTHOR HEADER
         embed.set_author(
             name=header if header != "<->" else "Embed",
             icon_url=bot_user.display_avatar.url
@@ -219,7 +201,45 @@ async def on_message(message):
 
 
 # =========================
-# 📩 PANEL
+# 👋 WELCOME SYSTEM
+# =========================
+@client.event
+async def on_member_join(member):
+
+    guild = member.guild
+
+    channel = discord.utils.get(guild.text_channels, name="🖼️・join")
+    if channel is None:
+        return
+
+    # 📊 members count
+    member_count = guild.member_count
+
+    # ⏰ heure FR
+    tz = pytz.timezone("Europe/Paris")
+    now = datetime.now(tz).strftime("%H:%M")
+
+    embed = discord.Embed(
+        description=f"Bienvenue {member.mention} sur **Beijing 🏯🏮**. Nous sommes {member_count} membres.",
+        color=0xFF1D8D
+    )
+
+    embed.set_author(
+        name="Bienvenue.",
+        icon_url=member.display_avatar.url
+    )
+
+    embed.set_footer(
+        text=f"Nouveau membre #{member_count} • Aujourd’hui à {now}"
+    )
+
+    embed.set_thumbnail(url=member.display_avatar.url)
+
+    await channel.send(embed=embed)
+
+
+# =========================
+# 📩 PANEL TICKETS
 # =========================
 async def send_panel():
     await client.wait_until_ready()
