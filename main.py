@@ -20,38 +20,6 @@ def clean_name(name: str):
 
 
 # =========================
-# 🎨 CONVERT COULEUR
-# =========================
-def parse_color(value: str):
-    if value == "<->":
-        return discord.Color.blue()
-
-    value = value.lower()
-
-    colors = {
-        "red": discord.Color.red(),
-        "blue": discord.Color.blue(),
-        "green": discord.Color.green(),
-        "orange": discord.Color.orange(),
-        "purple": discord.Color.purple(),
-        "yellow": discord.Color.gold(),
-        "grey": discord.Color.dark_grey(),
-    }
-
-    if value in colors:
-        return colors[value]
-
-    # hex support (#ff0000)
-    if value.startswith("#"):
-        try:
-            return discord.Color(int(value.replace("#", ""), 16))
-        except:
-            return discord.Color.blue()
-
-    return discord.Color.blue()
-
-
-# =========================
 # 🎫 TICKETS
 # =========================
 class TicketOpenView(discord.ui.View):
@@ -73,15 +41,19 @@ class TicketOpenView(discord.ui.View):
                 ephemeral=True
             )
 
+        channel_name = f"ticket-{clean_name(user.name)}"
+
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
+            role: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
+            guild.me: discord.PermissionOverwrite(view_channel=True)
+        }
+
         channel = await guild.create_text_channel(
-            name=f"ticket-{clean_name(user.name)}",
+            name=channel_name,
             category=category,
-            overwrites={
-                guild.default_role: discord.PermissionOverwrite(view_channel=False),
-                user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
-                role: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
-                guild.me: discord.PermissionOverwrite(view_channel=True)
-            }
+            overwrites=overwrites
         )
 
         embed = discord.Embed(
@@ -151,7 +123,7 @@ class ConfirmCloseView(discord.ui.View):
 
 
 # =========================
-# 💬 +EMBED COMMAND (ULTRA PRO)
+# 💬 +EMBED (VERSION PRO)
 # =========================
 @client.event
 async def on_message(message):
@@ -163,54 +135,79 @@ async def on_message(message):
     role = discord.utils.get(guild.roles, name="🔆Modérateur")
 
     # =========================
-    # +EMBED
+    # 📌 AIDE +EMBED
+    # =========================
+    if message.content.lower().startswith("+embed") and len(message.content.split(" ", 1)) == 1:
+
+        embed = discord.Embed(
+            title="ℹ Utilisation",
+            description=(
+                "Utilisation : **+embed** `<texte>` `<couleur>` `<en-tête>` `<footer>` `<image>`\n\n"
+                "*Si vous ne voulez pas mettre un champ, mettez : `<->`*"
+            ),
+            color=discord.Color.orange()
+        )
+
+        return await message.channel.send(embed=embed)
+
+    # =========================
+    # 🔐 PERMISSION
     # =========================
     if message.content.startswith("+embed"):
 
         if role not in message.author.roles:
-            return await message.channel.send(
-                embed=discord.Embed(
-                    title="❌ Permission refusée",
-                    description="Tu n’as pas la permission d’utiliser cette commande.",
-                    color=discord.Color.red()
-                )
+            embed = discord.Embed(
+                title="❌ Permission refusée",
+                description="Tu n’as pas la permission d’utiliser cette commande.",
+                color=discord.Color.red()
             )
+            return await message.channel.send(embed=embed)
 
-        parts = message.content.split(" ")
-
-        # usage:
-        # +embed <texte> <couleur> <titre> <footer> <image>
+        parts = message.content.split(" ", 5)
 
         if len(parts) < 2:
-            return await message.channel.send(
-                embed=discord.Embed(
-                    title="ℹ Utilisation",
-                    description="Utilisation : +embed <texte> <couleur> <en-tête> <footer> <image>\n"
-                                "*si vous ne voulez pas mettre un champ → '<->'*",
-                    color=discord.Color.orange()
-                )
-            )
+            return
 
-        text = parts[1] if len(parts) > 1 else "<->"
-        color = parts[2] if len(parts) > 2 else "<->"
-        header = parts[3] if len(parts) > 3 else "<->"
-        footer = parts[4] if len(parts) > 4 else "<->"
-        image = parts[5] if len(parts) > 5 else "<->"
+        # texte brut après +embed
+        data = parts[1].split(" ")
 
-        embed = discord.Embed(
-            description=None if text == "<->" else text,
-            color=parse_color(color)
-        )
+        # sécurité split propre
+        args = message.content.replace("+embed ", "").split(" ")
 
-        # HEADER (vrai titre)
+        # reconstruction flexible
+        text = args[0] if len(args) > 0 else "<->"
+        color = args[1] if len(args) > 1 else "<->"
+        header = args[2] if len(args) > 2 else "<->"
+        footer = args[3] if len(args) > 3 else "<->"
+        image = args[4] if len(args) > 4 else "<->"
+
+        # =========================
+        # 🎨 EMBED BUILD
+        # =========================
+        embed = discord.Embed()
+
+        # texte
+        if text != "<->":
+            embed.description = text
+
+        # couleur
+        if color != "<->":
+            try:
+                embed.color = int(color.replace("#", ""), 16)
+            except:
+                embed.color = discord.Color.blue()
+        else:
+            embed.color = discord.Color.blue()
+
+        # en-tête (VRAI TITLE)
         if header != "<->":
             embed.title = header
 
-        # FOOTER
+        # footer
         if footer != "<->":
             embed.set_footer(text=footer)
 
-        # IMAGE
+        # image
         if image != "<->":
             embed.set_image(url=image)
 
