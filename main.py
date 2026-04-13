@@ -24,7 +24,7 @@ def clean_name(name: str):
 
 
 # =========================
-# 🎫 TICKETS
+# 🎫 TICKETS (inchangé)
 # =========================
 class TicketOpenView(discord.ui.View):
     def __init__(self):
@@ -40,10 +40,7 @@ class TicketOpenView(discord.ui.View):
 
         category = discord.utils.get(guild.categories, name="📩  //  Ticket")
         if category is None:
-            return await interaction.response.send_message(
-                "❌ Catégorie introuvable",
-                ephemeral=True
-            )
+            return await interaction.response.send_message("❌ Catégorie introuvable", ephemeral=True)
 
         channel_name = f"ticket-{clean_name(user.name)}"
 
@@ -84,9 +81,6 @@ Décrivez votre problème puis attendez de recevoir une réponse.
         )
 
 
-# =========================
-# 🔒 FERMER TICKET
-# =========================
 class TicketCloseView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -117,17 +111,16 @@ class ConfirmCloseView(discord.ui.View):
 
         await interaction.message.delete()
 
-        await interaction.response.send_message(
-            embed=discord.Embed(
-                description="❌ Annulé",
-                color=discord.Color.red()
-            ),
-            ephemeral=True
+        embed = discord.Embed(
+            description="❌ Annulé : fermeture du ticket annulée.",
+            color=discord.Color.red()
         )
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 # =========================
-# 💬 +EMBED (inchangé stable)
+# 💬 +EMBED
 # =========================
 @client.event
 async def on_message(message):
@@ -143,13 +136,11 @@ async def on_message(message):
     def help_embed():
         return discord.Embed(
             title="ℹ Utilisation +embed",
-            description=(
-                "Syntaxe :\n"
-                "**+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"**"
-            ),
+            description='Syntaxe :\n**+embed "texte" "couleur" "en-tête" "footer" "image"**',
             color=discord.Color.orange()
         )
 
+    # ❌ no role
     if message.content.startswith("+embed") and role not in message.author.roles:
         return await message.channel.send(
             embed=discord.Embed(
@@ -168,6 +159,9 @@ async def on_message(message):
         try:
             args = shlex.split(content)
         except:
+            return await message.channel.send(embed=help_embed())
+
+        if len(args) < 1:
             return await message.channel.send(embed=help_embed())
 
         text = args[0] if len(args) > 0 else "<->"
@@ -201,7 +195,7 @@ async def on_message(message):
 
 
 # =========================
-# 👋 WELCOME SYSTEM
+# 👋 WELCOME SYSTEM (JOIN)
 # =========================
 @client.event
 async def on_member_join(member):
@@ -212,15 +206,19 @@ async def on_member_join(member):
     if channel is None:
         return
 
-    # 📊 members count
+    # 👥 compteur membres
     member_count = guild.member_count
 
-    # ⏰ heure FR
+    # ⏰ heure Paris
     tz = pytz.timezone("Europe/Paris")
-    now = datetime.now(tz).strftime("%H:%M")
+    now = datetime.now(tz)
+    time_now = now.strftime("%H:%M")
 
     embed = discord.Embed(
-        description=f"Bienvenue {member.mention} sur **Beijing 🏯🏮**. Nous sommes {member_count} membres.",
+        description=(
+            f"Bienvenue {member.mention} sur **Beijing 🏯🏮**. "
+            f"Nous sommes {member_count} membres."
+        ),
         color=0xFF1D8D
     )
 
@@ -230,7 +228,7 @@ async def on_member_join(member):
     )
 
     embed.set_footer(
-        text=f"Nouveau membre #{member_count} • Aujourd’hui à {now}"
+        text=f"Nouveau membre #{member_count} • Aujourd’hui à {time_now}"
     )
 
     embed.set_thumbnail(url=member.display_avatar.url)
