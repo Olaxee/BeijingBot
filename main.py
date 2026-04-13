@@ -123,7 +123,7 @@ class ConfirmCloseView(discord.ui.View):
 
 
 # =========================
-# 💬 +EMBED (VERSION PRO)
+# 💬 +EMBED PRO (STYLE DISCORD)
 # =========================
 @client.event
 async def on_message(message):
@@ -135,15 +135,15 @@ async def on_message(message):
     role = discord.utils.get(guild.roles, name="🔆Modérateur")
 
     # =========================
-    # 📌 AIDE +EMBED
+    # ℹ AIDE
     # =========================
-    if message.content.lower().startswith("+embed") and len(message.content.split(" ", 1)) == 1:
+    if message.content.lower() == "+embed":
 
         embed = discord.Embed(
             title="ℹ Utilisation",
             description=(
                 "Utilisation : **+embed** `<texte>` `<couleur>` `<en-tête>` `<footer>` `<image>`\n\n"
-                "*Si vous ne voulez pas mettre un champ, mettez : `<->`*"
+                "*Si vous ne voulez pas un champ : `<->`*"
             ),
             color=discord.Color.orange()
         )
@@ -163,18 +163,8 @@ async def on_message(message):
             )
             return await message.channel.send(embed=embed)
 
-        parts = message.content.split(" ", 5)
-
-        if len(parts) < 2:
-            return
-
-        # texte brut après +embed
-        data = parts[1].split(" ")
-
-        # sécurité split propre
         args = message.content.replace("+embed ", "").split(" ")
 
-        # reconstruction flexible
         text = args[0] if len(args) > 0 else "<->"
         color = args[1] if len(args) > 1 else "<->"
         header = args[2] if len(args) > 2 else "<->"
@@ -182,15 +172,19 @@ async def on_message(message):
         image = args[4] if len(args) > 4 else "<->"
 
         # =========================
-        # 🎨 EMBED BUILD
+        # 🎨 EMBED STYLE PRO
         # =========================
         embed = discord.Embed()
 
-        # texte
+        # 🟦 EN-TÊTE (VRAI TITLE EN HAUT)
+        if header != "<->":
+            embed.title = header
+
+        # 📝 TEXTE À GAUCHE
         if text != "<->":
             embed.description = text
 
-        # couleur
+        # 🎨 COULEUR
         if color != "<->":
             try:
                 embed.color = int(color.replace("#", ""), 16)
@@ -199,23 +193,20 @@ async def on_message(message):
         else:
             embed.color = discord.Color.blue()
 
-        # en-tête (VRAI TITLE)
-        if header != "<->":
-            embed.title = header
-
-        # footer
+        # 📌 FOOTER
         if footer != "<->":
             embed.set_footer(text=footer)
 
-        # image
+        # 🖼 IMAGE À DROITE (IMPORTANT)
+        # 👉 thumbnail = rendu "colonne droite"
         if image != "<->":
-            embed.set_image(url=image)
+            embed.set_thumbnail(url=image)
 
         await message.channel.send(embed=embed)
 
 
 # =========================
-# 📩 PANEL TICKETS
+# 📩 PANEL
 # =========================
 async def send_panel():
     await client.wait_until_ready()
