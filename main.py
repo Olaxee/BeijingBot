@@ -63,7 +63,7 @@ f"""**Ticket ouvert par** {user.mention}
 Raison : **Contacter le staff**
 
 Merci d'avoir contacté le support.
-Décrivez votre problème puis attendez une réponse.
+Décrivez votre problème puis attendez de recevoir une réponse.
 """,
             color=discord.Color.green()
         )
@@ -123,7 +123,7 @@ class ConfirmCloseView(discord.ui.View):
 
 
 # =========================
-# 💬 +EMBED ULTRA COMPLET
+# 🎨 +EMBED COMPLET
 # =========================
 @client.event
 async def on_message(message):
@@ -139,7 +139,6 @@ async def on_message(message):
     # =========================
     if message.content.startswith("+embed"):
 
-        # ❌ permission
         if role not in message.author.roles:
             return await message.channel.send(
                 embed=discord.Embed(
@@ -149,52 +148,48 @@ async def on_message(message):
                 )
             )
 
-        parts = message.content[len("+embed"):].strip().split("|")
+        parts = message.content.split(" ", 5)
 
-        # =========================
-        # UTILISATION
-        # =========================
         if len(parts) < 2:
-            return await message.channel.send(
-                embed=discord.Embed(
-                    title="ℹ Utilisation",
-                    description="Utilisation : **+embed** `<titre> | <description> | <couleur> | <image (optionnel)>`",
-                    color=discord.Color.orange()
-                )
-            )
+            return
 
-        title = parts[0].strip() if len(parts) > 0 else ""
-        description = parts[1].strip() if len(parts) > 1 else ""
-        color_name = parts[2].strip().lower() if len(parts) > 2 else "blue"
-        image_url = parts[3].strip() if len(parts) > 3 else None
+        # +embed <texte> <couleur> <titre> <footer> <image>
+        text = parts[1] if len(parts) > 1 else "<->"
+        color = parts[2] if len(parts) > 2 else "<->"
+        title = parts[3] if len(parts) > 3 else "<->"
+        footer = parts[4] if len(parts) > 4 else "<->"
+        image = parts[5] if len(parts) > 5 else "<->"
 
-        # =========================
-        # COULEURS
-        # =========================
+        # default embed
+        embed = discord.Embed(
+            description=text if text != "<->" else None,
+            color=discord.Color.blue()
+        )
+
+        # 🎨 couleur
         colors = {
             "blue": discord.Color.blue(),
             "red": discord.Color.red(),
             "green": discord.Color.green(),
-            "yellow": discord.Color.gold(),
+            "yellow": discord.Color.yellow(),
+            "purple": discord.Color.purple(),
             "orange": discord.Color.orange(),
-            "purple": discord.Color.purple()
         }
 
-        color = colors.get(color_name, discord.Color.blue())
+        if color != "<->" and color in colors:
+            embed.color = colors[color]
 
-        # =========================
-        # EMBED FINAL
-        # =========================
-        embed = discord.Embed(
-            title=title if title else None,
-            description=description,
-            color=color
-        )
+        # 🏷 titre
+        if title != "<->":
+            embed.title = title
 
-        if image_url:
-            embed.set_image(url=image_url)
+        # 🧾 footer
+        if footer != "<->":
+            embed.set_footer(text=footer)
 
-        embed.set_footer(text=f"Créé par {message.author.name}")
+        # 🖼 image
+        if image != "<->":
+            embed.set_image(url=image)
 
         await message.channel.send(embed=embed)
 
