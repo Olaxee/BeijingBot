@@ -20,6 +20,38 @@ def clean_name(name: str):
 
 
 # =========================
+# 🎨 CONVERT COULEUR
+# =========================
+def parse_color(value: str):
+    if value == "<->":
+        return discord.Color.blue()
+
+    value = value.lower()
+
+    colors = {
+        "red": discord.Color.red(),
+        "blue": discord.Color.blue(),
+        "green": discord.Color.green(),
+        "orange": discord.Color.orange(),
+        "purple": discord.Color.purple(),
+        "yellow": discord.Color.gold(),
+        "grey": discord.Color.dark_grey(),
+    }
+
+    if value in colors:
+        return colors[value]
+
+    # hex support (#ff0000)
+    if value.startswith("#"):
+        try:
+            return discord.Color(int(value.replace("#", ""), 16))
+        except:
+            return discord.Color.blue()
+
+    return discord.Color.blue()
+
+
+# =========================
 # 🎫 TICKETS
 # =========================
 class TicketOpenView(discord.ui.View):
@@ -41,19 +73,15 @@ class TicketOpenView(discord.ui.View):
                 ephemeral=True
             )
 
-        channel_name = f"ticket-{clean_name(user.name)}"
-
-        overwrites = {
-            guild.default_role: discord.PermissionOverwrite(view_channel=False),
-            user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
-            role: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
-            guild.me: discord.PermissionOverwrite(view_channel=True)
-        }
-
         channel = await guild.create_text_channel(
-            name=channel_name,
+            name=f"ticket-{clean_name(user.name)}",
             category=category,
-            overwrites=overwrites
+            overwrites={
+                guild.default_role: discord.PermissionOverwrite(view_channel=False),
+                user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
+                role: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
+                guild.me: discord.PermissionOverwrite(view_channel=True)
+            }
         )
 
         embed = discord.Embed(
@@ -123,7 +151,7 @@ class ConfirmCloseView(discord.ui.View):
 
 
 # =========================
-# 🎨 +EMBED COMPLET
+# 💬 +EMBED COMMAND (ULTRA PRO)
 # =========================
 @client.event
 async def on_message(message):
@@ -148,46 +176,41 @@ async def on_message(message):
                 )
             )
 
-        parts = message.content.split(" ", 5)
+        parts = message.content.split(" ")
+
+        # usage:
+        # +embed <texte> <couleur> <titre> <footer> <image>
 
         if len(parts) < 2:
-            return
+            return await message.channel.send(
+                embed=discord.Embed(
+                    title="ℹ Utilisation",
+                    description="Utilisation : +embed <texte> <couleur> <en-tête> <footer> <image>\n"
+                                "*si vous ne voulez pas mettre un champ → '<->'*",
+                    color=discord.Color.orange()
+                )
+            )
 
-        # +embed <texte> <couleur> <titre> <footer> <image>
         text = parts[1] if len(parts) > 1 else "<->"
         color = parts[2] if len(parts) > 2 else "<->"
-        title = parts[3] if len(parts) > 3 else "<->"
+        header = parts[3] if len(parts) > 3 else "<->"
         footer = parts[4] if len(parts) > 4 else "<->"
         image = parts[5] if len(parts) > 5 else "<->"
 
-        # default embed
         embed = discord.Embed(
-            description=text if text != "<->" else None,
-            color=discord.Color.blue()
+            description=None if text == "<->" else text,
+            color=parse_color(color)
         )
 
-        # 🎨 couleur
-        colors = {
-            "blue": discord.Color.blue(),
-            "red": discord.Color.red(),
-            "green": discord.Color.green(),
-            "yellow": discord.Color.yellow(),
-            "purple": discord.Color.purple(),
-            "orange": discord.Color.orange(),
-        }
+        # HEADER (vrai titre)
+        if header != "<->":
+            embed.title = header
 
-        if color != "<->" and color in colors:
-            embed.color = colors[color]
-
-        # 🏷 titre
-        if title != "<->":
-            embed.title = title
-
-        # 🧾 footer
+        # FOOTER
         if footer != "<->":
             embed.set_footer(text=footer)
 
-        # 🖼 image
+        # IMAGE
         if image != "<->":
             embed.set_image(url=image)
 
