@@ -158,10 +158,25 @@ async def on_message(message):
 
     bot_user = guild.me if guild else client.user
 
+    # =========================
+    # ℹ NOUVELLE AIDE
+    # =========================
     def help_embed():
         return discord.Embed(
-            title="ℹ Utilisation +embed",
-            description="**+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"**",
+            title="ℹ Commande +embed",
+            description=(
+                "**Créer un embed personnalisé**\n\n"
+                "**Syntaxe :**\n"
+                "`+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"`\n\n"
+                "**Champs :**\n"
+                "• texte → contenu principal (\\n = retour ligne)\n"
+                "• couleur → ex: #FF1D8D\n"
+                "• en-tête → author (haut gauche)\n"
+                "• footer → texte en bas\n"
+                "• image → image à droite\n\n"
+                "**Optionnel :**\n"
+                "Utilise `\"<->\"` pour ignorer un champ"
+            ),
             color=discord.Color.orange()
         )
 
@@ -217,7 +232,7 @@ async def on_message(message):
 
 
 # =========================
-# 👋 JOIN SYSTEM (DATE INTELLIGENTE)
+# 👋 JOIN SYSTEM
 # =========================
 @client.event
 async def on_member_join(member):
