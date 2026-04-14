@@ -3,6 +3,8 @@ import os
 import re
 import asyncio
 import shlex
+import secrets  # 🔥 pour génération sécurisée
+import string   # 🔥 alphabet
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -145,7 +147,7 @@ class ConfirmCloseView(discord.ui.View):
 
 
 # =========================
-# 💬 +EMBED
+# 💬 COMMANDES
 # =========================
 @client.event
 async def on_message(message):
@@ -159,7 +161,27 @@ async def on_message(message):
     bot_user = guild.me if guild else client.user
 
     # =========================
-    # ℹ HELP (MODIFIÉ)
+    # 🔐 +gencode (NOUVEAU)
+    # =========================
+    if message.content.lower() == "+gencode":
+
+        alphabet = string.ascii_letters + string.digits  # a-z A-Z 0-9
+        length = secrets.randbelow(9) + 16  # 16 → 24
+
+        code = ''.join(secrets.choice(alphabet) for _ in range(length))
+
+        embed = discord.Embed(
+            title="🔐 Code généré",
+            description=f"`{code}`",
+            color=discord.Color.green()
+        )
+
+        embed.set_footer(text="Longueur aléatoire • Génération sécurisée")
+
+        return await message.channel.send(embed=embed)
+
+    # =========================
+    # ℹ HELP EMBED
     # =========================
     def help_embed():
         return discord.Embed(
