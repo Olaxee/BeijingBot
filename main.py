@@ -24,7 +24,7 @@ def clean_name(name: str):
 
 
 # =========================
-# 🕒 DATE FORMAT INTELLIGENT
+# 🕒 DATE INTELLIGENTE
 # =========================
 def get_date_string():
 
@@ -45,7 +45,7 @@ def get_date_string():
 
 
 # =========================
-# 🎫 TICKETS
+# 🎫 TICKETS (inchangé)
 # =========================
 class TicketOpenView(discord.ui.View):
     def __init__(self):
@@ -159,23 +159,14 @@ async def on_message(message):
     bot_user = guild.me if guild else client.user
 
     # =========================
-    # ℹ NOUVELLE AIDE
+    # ℹ HELP (MODIFIÉ)
     # =========================
     def help_embed():
         return discord.Embed(
-            title="ℹ Commande +embed",
+            title="ℹ +embed",
             description=(
-                "**Créer un embed personnalisé**\n\n"
-                "**Syntaxe :**\n"
-                "`+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"`\n\n"
-                "**Champs :**\n"
-                "• texte → contenu principal (\\n = retour ligne)\n"
-                "• couleur → ex: #FF1D8D\n"
-                "• en-tête → author (haut gauche)\n"
-                "• footer → texte en bas\n"
-                "• image → image à droite\n\n"
-                "**Optionnel :**\n"
-                "Utilise `\"<->\"` pour ignorer un champ"
+                "**+embed \"texte\" \"couleur\" \"titre\" \"footer\" \"image\"**\n"
+                "👉 Utilise `<->` pour ignorer une option"
             ),
             color=discord.Color.orange()
         )
@@ -232,7 +223,7 @@ async def on_message(message):
 
 
 # =========================
-# 👋 JOIN SYSTEM
+# 👋 JOIN SYSTEM (inchangé)
 # =========================
 @client.event
 async def on_member_join(member):
@@ -244,7 +235,18 @@ async def on_member_join(member):
     guild = member.guild
     count = guild.member_count
 
-    date_string = get_date_string()
+    now = datetime.now(ZoneInfo("Europe/Paris"))
+    today = now.date()
+    yesterday = today - timedelta(days=1)
+
+    if now.date() == today:
+        date_str = "Aujourd’hui"
+    elif now.date() == yesterday:
+        date_str = "Hier"
+    else:
+        date_str = now.strftime("%d/%m/%Y")
+
+    time_str = now.strftime("%H:%M")
 
     embed = discord.Embed(
         description=f"Bienvenue {member.mention} sur **Beijing 🏯🏮**. Nous sommes {count} membres.",
@@ -257,7 +259,7 @@ async def on_member_join(member):
     )
 
     embed.set_footer(
-        text=f"Nouveau membre #{count} • {date_string}"
+        text=f"Nouveau membre #{count} • {date_str} à {time_str}"
     )
 
     embed.set_thumbnail(url=member.display_avatar.url)
@@ -266,36 +268,11 @@ async def on_member_join(member):
 
 
 # =========================
-# 📩 PANEL
-# =========================
-async def send_panel():
-    await client.wait_until_ready()
-
-    for guild in client.guilds:
-        channel = discord.utils.get(guild.text_channels, name="📩・ticket")
-
-        if channel:
-            embed = discord.Embed(
-                title="🎫 Support & Tickets",
-                description=(
-                    "Avez vous besoin d'aide ?\n"
-                    "Avez vous besoin de contacter le staff ?\n"
-                    "Avez vous besoin d'info ?\n\n"
-                    "Ouvrez un ticket ci-dessous"
-                ),
-                color=discord.Color.green()
-            )
-
-            await channel.send(embed=embed, view=TicketOpenView())
-
-
-# =========================
 # 🤖 READY
 # =========================
 @client.event
 async def on_ready():
     print(f"Connecté en tant que {client.user}")
-    client.loop.create_task(send_panel())
 
 
 # =========================
