@@ -3,8 +3,8 @@ import os
 import re
 import asyncio
 import shlex
-from datetime import datetime
-from zoneinfo import ZoneInfo  # 🔥 FIX HEURE
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -21,6 +21,27 @@ def clean_name(name: str):
     name = name.lower()
     name = re.sub(r"[^a-z0-9]", "", name)
     return name[:20]
+
+
+# =========================
+# 🕒 DATE FORMAT INTELLIGENT
+# =========================
+def get_date_string():
+
+    now = datetime.now(ZoneInfo("Europe/Paris"))
+    today = now.date()
+    yesterday = today - timedelta(days=1)
+
+    if now.date() == today:
+        date_str = "Aujourd’hui"
+    elif now.date() == yesterday:
+        date_str = "Hier"
+    else:
+        date_str = now.strftime("%d/%m/%Y")
+
+    time_str = now.strftime("%H:%M")
+
+    return f"{date_str} à {time_str}"
 
 
 # =========================
@@ -140,10 +161,7 @@ async def on_message(message):
     def help_embed():
         return discord.Embed(
             title="ℹ Utilisation +embed",
-            description=(
-                "**+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"**\n"
-                "👉 `<->` pour ignorer"
-            ),
+            description="**+embed \"texte\" \"couleur\" \"en-tête\" \"footer\" \"image\"**",
             color=discord.Color.orange()
         )
 
@@ -199,7 +217,7 @@ async def on_message(message):
 
 
 # =========================
-# 👋 JOIN SYSTEM (FIX HEURE 🇫🇷)
+# 👋 JOIN SYSTEM (DATE INTELLIGENTE)
 # =========================
 @client.event
 async def on_member_join(member):
@@ -211,8 +229,7 @@ async def on_member_join(member):
     guild = member.guild
     count = guild.member_count
 
-    # 🔥 HEURE FRANCE FIX
-    now = datetime.now(ZoneInfo("Europe/Paris")).strftime("%H:%M")
+    date_string = get_date_string()
 
     embed = discord.Embed(
         description=f"Bienvenue {member.mention} sur **Beijing 🏯🏮**. Nous sommes {count} membres.",
@@ -225,7 +242,7 @@ async def on_member_join(member):
     )
 
     embed.set_footer(
-        text=f"Nouveau membre #{count} • Aujourd’hui à {now}"
+        text=f"Nouveau membre #{count} • {date_string}"
     )
 
     embed.set_thumbnail(url=member.display_avatar.url)
