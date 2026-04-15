@@ -26,7 +26,6 @@
 
     a { color: #4ea1ff; }
 
-    /* THEME BAR */
     .theme-bar {
       position: fixed;
       top: 15px;
@@ -58,7 +57,6 @@
       color: #4ea1ff;
     }
 
-    /* SYNC STATUS */
     .sync-status {
       position: fixed;
       top: 15px;
@@ -91,22 +89,20 @@
 <div id="content">Chargement...</div>
 
 <script>
-/* 🔑 TON TOKEN ICI */
-const GITHUB_TOKEN = "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";
+/* 🔑 TON TOKEN */
+const TOKEN = "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";
 
-/* URLs */
-const RAW_URL = "https://raw.githubusercontent.com/Olaxee/BeijingDiscord/main/Rules/Rules.md";
-const API_URL = "https://api.github.com/repos/Olaxee/BeijingDiscord/commits?path=Rules/Rules.md&sha=main";
+/* API */
+const API_URL = "https://api.github.com/repos/Olaxee/BeijingDiscord/contents/Rules/Rules.md";
 
 /* HEADERS */
 const headers = {
-  "Authorization": "token " + GITHUB_TOKEN,
+  "Authorization": "token " + TOKEN,
   "Accept": "application/vnd.github+json"
 };
 
 /* STATE */
-let lastCommitSha = null;
-let displayedCommitSha = null;
+let lastSha = null;
 
 const statusEl = document.getElementById("syncStatus");
 
@@ -115,62 +111,52 @@ function setStatus(type, text) {
   statusEl.textContent = text;
 }
 
-/* 🔎 CHECK COMMITS */
-async function checkCommit() {
+/* DECODE BASE64 */
+function decodeBase64(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
+
+/* MAIN */
+async function syncFile() {
   try {
     const res = await fetch(API_URL, { headers });
+
+    if (!res.ok) throw new Error("API error");
+
     const data = await res.json();
 
-    const latestSha = data[0].sha;
+    const newSha = data.sha;
 
-    if (!lastCommitSha) {
-      lastCommitSha = latestSha;
-      displayedCommitSha = latestSha;
+    // premier chargement
+    if (!lastSha) {
+      lastSha = newSha;
+      const md = decodeBase64(data.content);
+      document.getElementById("content").innerHTML = marked.parse(md);
+      setStatus("synced", "🟢 SYNCED");
       return;
     }
 
-    if (latestSha !== lastCommitSha) {
-      lastCommitSha = latestSha;
+    // nouveau commit détecté
+    if (newSha !== lastSha) {
       setStatus("updating", "🟡 UPDATING (nouveau commit)");
-    }
 
-  } catch {
-    setStatus("outdated", "🔴 OUTDATED");
-  }
-}
+      const md = decodeBase64(data.content);
+      document.getElementById("content").innerHTML = marked.parse(md);
 
-/* 📄 LOAD CONTENT */
-async function loadReadme() {
-  try {
-    const res = await fetch(RAW_URL);
-    const md = await res.text();
+      lastSha = newSha;
 
-    const commitRes = await fetch(API_URL, { headers });
-    const commitData = await commitRes.json();
-    const currentSha = commitData[0].sha;
-
-    // si le raw n’est pas encore sync avec le commit
-    if (currentSha !== lastCommitSha) return;
-
-    document.getElementById("content").innerHTML = marked.parse(md);
-
-    displayedCommitSha = currentSha;
-
-    if (displayedCommitSha === lastCommitSha) {
       setStatus("synced", "🟢 SYNCED");
     }
 
-  } catch {
+  } catch (e) {
+    console.error(e);
     setStatus("outdated", "🔴 OUTDATED");
   }
 }
 
 /* LOOP */
-setInterval(checkCommit, 5000);
-setInterval(loadReadme, 4000);
-
-checkCommit();
-loadReadme();
+syncFile();
+setInterval(syncFile, 5000);
 
 /* THEME */
 function setTheme(theme) {
