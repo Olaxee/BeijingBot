@@ -21,42 +21,6 @@
     body.light { background: #ffffff; color: #111; }
     body.amoled { background: #000000; color: #ffffff; }
 
-    code { background: #222; padding: 2px 5px; border-radius: 4px; }
-    pre { background: #1a1a1a; padding: 10px; border-radius: 8px; }
-
-    a { color: #4ea1ff; }
-
-    .theme-bar {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      transform: scale(0.66);
-    }
-
-    .theme-pill {
-      display: flex;
-      gap: 8px;
-      padding: 4px;
-      border-radius: 999px;
-      border: 3px solid currentColor;
-    }
-
-    .theme-pill button {
-      border: 3px solid currentColor;
-      padding: 2px 9px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 700;
-      background: transparent;
-      color: inherit;
-    }
-
-    .theme-pill button.active {
-      border-color: #4ea1ff;
-      color: #4ea1ff;
-    }
-
     .sync-status {
       position: fixed;
       top: 15px;
@@ -76,107 +40,86 @@
 
 <body class="dark">
 
-<div id="syncStatus" class="sync-status synced">🟢 SYNCED</div>
-
-<div class="theme-bar">
-  <div class="theme-pill">
-    <button data-theme="dark" onclick="setTheme('dark')">DARK</button>
-    <button data-theme="light" onclick="setTheme('light')">LIGHT</button>
-    <button data-theme="amoled" onclick="setTheme('amoled')">AMOLED</button>
-  </div>
-</div>
-
+<div id="syncStatus" class="sync-status">⏳ LOADING...</div>
 <div id="content">Chargement...</div>
 
 <script>
-/* 🔑 TON TOKEN */
 const TOKEN = "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";
-
-/* API */
 const API_URL = "https://api.github.com/repos/Olaxee/BeijingDiscord/contents/Rules/Rules.md";
 
-/* HEADERS */
-const headers = {
-  "Authorization": "token " + TOKEN,
-  "Accept": "application/vnd.github+json"
-};
-
-/* STATE */
 let lastSha = null;
 
 const statusEl = document.getElementById("syncStatus");
+const contentEl = document.getElementById("content");
 
 function setStatus(type, text) {
   statusEl.className = "sync-status " + type;
   statusEl.textContent = text;
 }
 
-/* DECODE BASE64 */
-function decodeBase64(str) {
-  return decodeURIComponent(escape(atob(str)));
+// ✅ decode base64 CORRECT UTF-8
+function decodeBase64UTF8(str) {
+  const bytes = Uint8Array.from(atob(str), c => c.charCodeAt(0));
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
-/* MAIN */
 async function syncFile() {
   try {
-    const res = await fetch(API_URL, { headers });
+    setStatus("", "⏳ CHECK...");
 
-    if (!res.ok) throw new Error("API error");
+    const res = await fetch(API_URL, {
+      headers: {
+        "Authorization": "token " + TOKEN,
+        "Accept": "application/vnd.github+json"
+      }
+    });
 
     const data = await res.json();
 
+    // 🔥 DEBUG important
+    if (!res.ok) {
+      console.error("API ERROR:", data);
+      throw new Error(data.message || "API error");
+    }
+
+    if (!data.content) {
+      console.error("NO CONTENT:", data);
+      throw new Error("No content field");
+    }
+
     const newSha = data.sha;
 
-    // premier chargement
+    // premier load
     if (!lastSha) {
+      const md = decodeBase64UTF8(data.content);
+      contentEl.innerHTML = marked.parse(md);
       lastSha = newSha;
-      const md = decodeBase64(data.content);
-      document.getElementById("content").innerHTML = marked.parse(md);
       setStatus("synced", "🟢 SYNCED");
       return;
     }
 
-    // nouveau commit détecté
+    // nouveau commit
     if (newSha !== lastSha) {
-      setStatus("updating", "🟡 UPDATING (nouveau commit)");
+      setStatus("updating", "🟡 UPDATING...");
 
-      const md = decodeBase64(data.content);
-      document.getElementById("content").innerHTML = marked.parse(md);
+      const md = decodeBase64UTF8(data.content);
+      contentEl.innerHTML = marked.parse(md);
 
       lastSha = newSha;
 
       setStatus("synced", "🟢 SYNCED");
+    } else {
+      setStatus("synced", "🟢 SYNCED");
     }
 
   } catch (e) {
-    console.error(e);
+    console.error("SYNC ERROR:", e);
     setStatus("outdated", "🔴 OUTDATED");
   }
 }
 
-/* LOOP */
 syncFile();
 setInterval(syncFile, 5000);
-
-/* THEME */
-function setTheme(theme) {
-  document.body.classList.remove("dark", "light", "amoled");
-  document.body.classList.add(theme);
-
-  localStorage.setItem("theme", theme);
-
-  document.querySelectorAll(".theme-pill button")
-    .forEach(btn => btn.classList.remove("active"));
-
-  document.querySelector(`[data-theme="${theme}"]`)
-    ?.classList.add("active");
-}
-
-const saved = localStorage.getItem("theme") || "dark";
-document.body.classList.add(saved);
-document.querySelector(`[data-theme="${saved}"]`)
-  ?.classList.add("active");
-
 </script>
 
 </body>
