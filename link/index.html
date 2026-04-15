@@ -15,11 +15,7 @@
       font-family: Arial, sans-serif;
     }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-
+    button {
       padding: 10px 16px;
       border-radius: 8px;
 
@@ -28,58 +24,20 @@
       color: #e6edf3;
 
       font-size: 14px;
-      font-weight: 500;
-
       cursor: pointer;
-      transition: 0.15s ease;
-      user-select: none;
+
+      transition: 0.15s;
     }
 
-    .btn:hover {
+    button:hover {
       background: #1f242c;
-      border-color: #3a3f46;
-    }
-
-    .icon {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    svg {
-      width: 16px;
-      height: 16px;
-      fill: currentColor;
-    }
-
-    .divider {
-      width: 1px;
-      height: 16px;
-      background: #30363d;
-      margin: 0 2px;
     }
   </style>
 </head>
 
 <body>
 
-<button class="btn" onclick="copyAndExit()">
-  <span class="icon">
-    <!-- plus icon -->
-    <svg viewBox="0 0 16 16">
-      <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"/>
-    </svg>
-
-    Copier
-  </span>
-
-  <span class="divider"></span>
-
-  <!-- dropdown arrow -->
-  <svg viewBox="0 0 16 16">
-    <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/>
-  </svg>
-</button>
+<button onclick="copyAndExit()">Copier</button>
 
 <script>
   async function copyAndExit() {
