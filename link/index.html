@@ -44,7 +44,7 @@
       position: fixed;
       left: 50%;
       transform: translateX(-50%);
-      bottom: -80px;
+      bottom: 30px;
 
       background: #00a62c;
       border: 2px solid #1bf254;
@@ -54,13 +54,11 @@
       border-radius: 999px;
 
       font-weight: bold;
-
       opacity: 0;
-      transition: 0.4s ease;
+      transition: 0.3s;
     }
 
     .toast.show {
-      bottom: 30px;
       opacity: 1;
     }
   </style>
@@ -87,21 +85,18 @@
       ta.remove();
     }
 
-    // afficher popup
-    const toast = document.getElementById("toast");
-    toast.classList.add("show");
+    // afficher popup (elle reste)
+    document.getElementById("toast").classList.add("show");
 
-    // après 1 seconde -> fermer / retour
+    // attendre 2s puis fermer
     setTimeout(() => {
-      toast.classList.remove("show");
-
       window.close();
 
       setTimeout(() => {
         history.back();
       }, 200);
 
-    }, 1000);
+    }, 2000);
   }
 </script>
 
