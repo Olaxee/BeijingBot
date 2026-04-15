@@ -4,72 +4,39 @@
   <meta charset="UTF-8" />
   <title>Rules</title>
 
-  <!-- Librairie Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
     html {
       zoom: 150%;
     }
-    
-    #content {
-      transition: background-color 0.35s ease, color 0.35s ease;
-    }
-    
-    .theme-bar {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      z-index: 9999;
-      
-      transform: scale(0.66); /* ≈ 1 / 1.5 */
-      transform-origin: top right;
-    }
-    
-    .theme-pill {
-      display: flex;
-      gap: 8px;
-      padding: 4px;
-      border-radius: 999px;
-      
-      border: 3px solid currentColor;
-      background: transparent;
-      
-      font-family: inherit; /* même police que ton markdown */
-    }
-    
-    .theme-pill button {
-      border: 3px solid currentColor;
-      background: transparent;
-      
-      padding: 2px 9px;
-      border-radius: 999px;
-      
-      cursor: pointer;
-      
-      font-family: inherit; /* même police markdown */
-      font-size: 12px;
-      font-weight: 700;   /* 👈 gras comme ton Markdown */
-      
-      color: inherit;
-    }
-    
-    .theme-bar, .theme-pill, .theme-pill button {
-      transition: all 0.35s ease;
-    }
-    
-    .theme-pill button.active {
-      border-color: #4ea1ff;
-      color: #4ea1ff;
-    }
-    
+
     body {
       font-family: Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
       max-width: 900px;
       margin: auto;
       padding: 20px;
+
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    /* THEMES */
+    body.dark {
       background: #0f0f0f;
       color: white;
+    }
+
+    body.light {
+      background: #ffffff;
+      color: #111;
+    }
+
+    body.amoled {
+      background: #000000;
+      color: #ffffff;
+    }
+
+    #content {
       transition: background-color 0.35s ease, color 0.35s ease;
     }
 
@@ -90,88 +57,101 @@
       color: #4ea1ff;
       text-decoration: none;
     }
-    
+
     a:hover {
       text-decoration: underline;
     }
-  
+
+    /* THEME BAR */
+    .theme-bar {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 9999;
+      transform: scale(0.66);
+      transform-origin: top right;
+    }
+
+    .theme-pill {
+      display: flex;
+      gap: 8px;
+      padding: 4px;
+      border-radius: 999px;
+      border: 3px solid currentColor;
+      background: transparent;
+    }
+
+    .theme-pill button {
+      border: 3px solid currentColor;
+      background: transparent;
+
+      padding: 2px 9px;
+      border-radius: 999px;
+
+      cursor: pointer;
+
+      font-size: 12px;
+      font-weight: 700;
+      color: inherit;
+
+      transition: all 0.35s ease;
+    }
+
+    .theme-pill button.active {
+      border-color: #4ea1ff;
+      color: #4ea1ff;
+    }
   </style>
 </head>
 
-<body>
+<body class="dark">
+
   <div class="theme-bar">
     <div class="theme-pill">
-      <button onclick="setTheme('dark')">DARK</button>
-      <button onclick="setTheme('light')">LIGHT</button>
-      <button onclick="setTheme('amoled')">AMOLED</button>
+      <button data-theme="dark" onclick="setTheme('dark')">DARK</button>
+      <button data-theme="light" onclick="setTheme('light')">LIGHT</button>
+      <button data-theme="amoled" onclick="setTheme('amoled')">AMOLED</button>
     </div>
   </div>
-  
+
   <div id="content">Chargement...</div>
 
   <script>
     const url = "https://raw.githubusercontent.com/Olaxee/BeijingDiscord/refs/heads/main/Rules/Rules.md";
 
     async function loadReadme() {
-      const res = await fetch(url + "?t=" + Date.now()); // évite cache
+      const res = await fetch(url + "?t=" + Date.now());
       const md = await res.text();
-
       document.getElementById("content").innerHTML = marked.parse(md);
     }
 
     loadReadme();
-
-    // refresh auto toutes les 30s (optionnel)
     setInterval(loadReadme, 30000);
 
-    // /SETTHEME/ js barre de thème
     function setTheme(theme) {
       const body = document.body;
-      
-      // fade effect (optionnel mais clean)
-      body.style.opacity = "0.4";
-      
-      setTimeout(() => {
-        body.classList.remove("dark", "light", "amoled");
-        body.classList.add(theme);
-      
+
+      // switch theme
+      body.classList.remove("dark", "light", "amoled");
+      body.classList.add(theme);
+
       localStorage.setItem("theme", theme);
-      applyTheme(theme);
-        
-        // bouton actif
-        document.querySelectorAll(".theme-pill button")
-          .forEach(btn => btn.classList.remove("active"));
-        
-        document.querySelector(`.theme-pill button[onclick="setTheme('${theme}')"]`)
-          .classList.add("active");
-        
-        body.style.opacity = "1";
-      }, 120);
+
+      // active button
+      document.querySelectorAll(".theme-pill button")
+        .forEach(btn => btn.classList.remove("active"));
+
+      const activeBtn = document.querySelector(`.theme-pill button[data-theme="${theme}"]`);
+      if (activeBtn) activeBtn.classList.add("active");
     }
-    
-    function applyTheme(theme) {
-      const body = document.body;
-      
-      if (theme === "dark") {
-        body.style.background = "#0f0f0f";
-        body.style.color = "white";
-      }
-      
-      if (theme === "light") {
-        body.style.background = "#ffffff";
-        body.style.color = "#111";
-      }
-      
-      if (theme === "amoled") {
-        body.style.background = "#000000";
-        body.style.color = "#ffffff";
-      }
-    }
-    
-    // /LOAD/ load saved theme
+
+    // init theme SANS animation (important pour éviter le flicker)
     const saved = localStorage.getItem("theme") || "dark";
-    setTheme(saved);
-    
+    document.body.classList.add(saved);
+
+    document.querySelector(`.theme-pill button[data-theme="${saved}"]`)
+      ?.classList.add("active");
   </script>
+
 </body>
 </html>
