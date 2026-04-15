@@ -24,24 +24,26 @@
       gap: 8px;
       padding: 6px;
       border-radius: 999px;
-      background: rgba(30, 30, 30, 0.8);
-      backdrop-filter: blur(10px);
+      
+      border: 1px solid currentColor;
+      background: transparent;
+      
+      font-family: inherit; /* même police que ton markdown */
     }
     
     .theme-pill button {
-      border: none;
-      padding: 6px 12px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 12px;
-      transition: 0.2s;
+      border: 1px solid currentColor;
       background: transparent;
-      color: white;
-    }
-    
-    .theme-pill button:hover {
-      background: rgba(255, 255, 255, 0.15);
+      
+      padding: 5px 10px;
+      border-radius: 999px;
+      
+      cursor: pointer;
+      
+      font-family: inherit; /* même police markdown */
+      font-size: 12px;
+      
+      color: inherit;
     }
     
     body {
@@ -103,7 +105,8 @@
 
     // refresh auto toutes les 30s (optionnel)
     setInterval(loadReadme, 30000);
-    
+
+    // js barre de thème
     function setTheme(theme) {
       const body = document.body;
       
@@ -132,6 +135,10 @@
         body.style.background = "#000000";
         body.style.color = "#ffffff";
       }
+      
+      // applique couleur globale (IMPORTANT pour la barre)
+      document.documentElement.style.color = body.style.color;
+}
     }
     
     // load saved theme
