@@ -26,6 +26,7 @@
 
     a { color: #4ea1ff; }
 
+    /* THEME BAR */
     .theme-bar {
       position: fixed;
       top: 15px;
@@ -57,7 +58,7 @@
       color: #4ea1ff;
     }
 
-    /* STATUS */
+    /* SYNC STATUS */
     .sync-status {
       position: fixed;
       top: 15px;
@@ -90,9 +91,20 @@
 <div id="content">Chargement...</div>
 
 <script>
+/* 🔑 TON TOKEN ICI */
+const GITHUB_TOKEN = "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";
+
+/* URLs */
 const RAW_URL = "https://raw.githubusercontent.com/Olaxee/BeijingDiscord/main/Rules/Rules.md";
 const API_URL = "https://api.github.com/repos/Olaxee/BeijingDiscord/commits?path=Rules/Rules.md&sha=main";
 
+/* HEADERS */
+const headers = {
+  "Authorization": "token " + GITHUB_TOKEN,
+  "Accept": "application/vnd.github+json"
+};
+
+/* STATE */
 let lastCommitSha = null;
 let displayedCommitSha = null;
 
@@ -106,7 +118,7 @@ function setStatus(type, text) {
 /* 🔎 CHECK COMMITS */
 async function checkCommit() {
   try {
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL, { headers });
     const data = await res.json();
 
     const latestSha = data[0].sha;
@@ -133,15 +145,13 @@ async function loadReadme() {
     const res = await fetch(RAW_URL);
     const md = await res.text();
 
-    // on recheck le commit actuel
-    const commitRes = await fetch(API_URL);
+    const commitRes = await fetch(API_URL, { headers });
     const commitData = await commitRes.json();
     const currentSha = commitData[0].sha;
 
-    // si contenu pas encore sync
+    // si le raw n’est pas encore sync avec le commit
     if (currentSha !== lastCommitSha) return;
 
-    // contenu à jour
     document.getElementById("content").innerHTML = marked.parse(md);
 
     displayedCommitSha = currentSha;
@@ -156,8 +166,8 @@ async function loadReadme() {
 }
 
 /* LOOP */
-setInterval(checkCommit, 5000);   // détecte commit rapidement
-setInterval(loadReadme, 4000);    // tente sync contenu
+setInterval(checkCommit, 5000);
+setInterval(loadReadme, 4000);
 
 checkCommit();
 loadReadme();
@@ -178,7 +188,8 @@ function setTheme(theme) {
 
 const saved = localStorage.getItem("theme") || "dark";
 document.body.classList.add(saved);
-document.querySelector(`[data-theme="${saved}"]`)?.classList.add("active");
+document.querySelector(`[data-theme="${saved}"]`)
+  ?.classList.add("active");
 
 </script>
 
