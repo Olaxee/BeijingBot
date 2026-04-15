@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Popup Example</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0f0f0f;
+      font-family: Arial, sans-serif;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      background: #4ea1ff;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -80px;
+      background: #222;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 50px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      transition: 0.4s ease;
+      opacity: 0;
+    }
+
+    .toast.show {
+      bottom: 30px;
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <button onclick="showToast()">Copier le lien</button>
+
+  <div id="toast" class="toast">Lien Copié</div>
+
+  <script>
+    function showToast() {
+      const toast = document.getElementById("toast");
+
+      toast.classList.add("show");
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2000);
+    }
+  </script>
+
+</body>
+</html>
