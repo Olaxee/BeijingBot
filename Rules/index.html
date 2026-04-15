@@ -7,13 +7,16 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
-    html { zoom: 150%; }
+    html {
+      zoom: 150%;
+    }
 
     body {
       font-family: Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
       max-width: 900px;
       margin: auto;
       padding: 20px;
+
       transition: background-color 0.35s ease, color 0.35s ease;
     }
 
@@ -21,17 +24,33 @@
     body.light { background: #ffffff; color: #111; }
     body.amoled { background: #000000; color: #ffffff; }
 
-    code { background: #222; padding: 2px 5px; border-radius: 4px; }
-    pre { background: #1a1a1a; padding: 10px; border-radius: 8px; }
+    #content {
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
 
-    a { color: #4ea1ff; }
+    code {
+      background: #222;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
 
-    /* THEME BAR */
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      overflow-x: auto;
+      border-radius: 8px;
+    }
+
+    a { color: #4ea1ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
     .theme-bar {
       position: fixed;
       top: 15px;
       right: 15px;
+      z-index: 9999;
       transform: scale(0.66);
+      transform-origin: top right;
     }
 
     .theme-pill {
@@ -40,158 +59,116 @@
       padding: 4px;
       border-radius: 999px;
       border: 3px solid currentColor;
+      background: transparent;
     }
 
     .theme-pill button {
       border: 3px solid currentColor;
+      background: transparent;
       padding: 2px 9px;
       border-radius: 999px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 700;
-      background: transparent;
       color: inherit;
-      transition: all 0.3s ease;
+      transition: all 0.35s ease;
     }
 
     .theme-pill button.active {
       border-color: #4ea1ff;
       color: #4ea1ff;
     }
-
-    /* STATUS */
-    .sync-status {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 2px solid currentColor;
-    }
-
-    .synced { color: #4caf50; border-color: #4caf50; }
-    .updating { color: #ffb300; border-color: #ffb300; }
-    .outdated { color: #ff4e4e; border-color: #ff4e4e; }
   </style>
 </head>
 
 <body class="dark">
 
-<div id="syncStatus" class="sync-status">⏳ LOADING...</div>
-
-<div class="theme-bar">
-  <div class="theme-pill">
-    <button data-theme="dark" onclick="setTheme('dark')">DARK</button>
-    <button data-theme="light" onclick="setTheme('light')">LIGHT</button>
-    <button data-theme="amoled" onclick="setTheme('amoled')">AMOLED</button>
+  <div class="theme-bar">
+    <div class="theme-pill">
+      <button data-theme="dark" onclick="setTheme('dark')">DARK</button>
+      <button data-theme="light" onclick="setTheme('light')">LIGHT</button>
+      <button data-theme="amoled" onclick="setTheme('amoled')">AMOLED</button>
+    </div>
   </div>
-</div>
 
-<div id="content">Chargement...</div>
+  <div id="content">Chargement...</div>
 
-<script>
-/* 🔑 TOKEN */
-const TOKEN = "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";
+  <script>
+    const url = "https://raw.githubusercontent.com/Olaxee/BeijingDiscord/refs/heads/main/Rules/Rules.md";
 
-/* ✅ BON ENDPOINT */
-const API_URL = "https://api.github.com/repos/Olaxee/BeijingDiscord/contents/Rules/Rules.md?ref=main";
+    let lastETag = null;
+    let lastContentHash = null;
+    let controller = null;
 
-/* STATE */
-let lastSha = null;
+    async function loadReadme() {
+      try {
+        // annule requête précédente si encore en cours
+        if (controller) controller.abort();
+        controller = new AbortController();
 
-const statusEl = document.getElementById("syncStatus");
-const contentEl = document.getElementById("content");
+        const headers = {};
 
-function setStatus(type, text) {
-  statusEl.className = "sync-status " + type;
-  statusEl.textContent = text;
-}
+        // 🔥 cache intelligent GitHub
+        if (lastETag) {
+          headers["If-None-Match"] = lastETag;
+        }
 
-/* ✅ decode UTF-8 fiable */
-function decodeBase64(str) {
-  const bytes = Uint8Array.from(atob(str), c => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers
+        });
 
-async function syncFile() {
-  try {
-    const res = await fetch(API_URL, {
-      headers: {
-        "Authorization": "token " + TOKEN,
-        "Accept": "application/vnd.github+json"
+        // 🔥 rien n’a changé
+        if (res.status === 304) return;
+
+        const etag = res.headers.get("ETag");
+
+        const md = await res.text();
+
+        // petit hash simple pour éviter re-render inutile
+        let hash = 0;
+        for (let i = 0; i < md.length; i++) {
+          hash = (hash * 31 + md.charCodeAt(i)) >>> 0;
+        }
+
+        if (hash === lastContentHash) return;
+
+        lastContentHash = hash;
+        lastETag = etag;
+
+        document.getElementById("content").innerHTML = marked.parse(md);
+
+      } catch (e) {
+        // ignore abort errors
       }
-    });
-
-    const data = await res.json();
-
-    /* 🔥 DEBUG */
-    console.log("API RESPONSE:", data);
-
-    if (!res.ok) {
-      throw new Error(data.message || "API error");
     }
 
-    if (!data.content) {
-      throw new Error("No content received");
+    loadReadme();
+
+    // 🔥 sync plus rapide mais stable
+    setInterval(loadReadme, 8000);
+
+    function setTheme(theme) {
+      const body = document.body;
+
+      body.classList.remove("dark", "light", "amoled");
+      body.classList.add(theme);
+
+      localStorage.setItem("theme", theme);
+
+      document.querySelectorAll(".theme-pill button")
+        .forEach(btn => btn.classList.remove("active"));
+
+      const activeBtn = document.querySelector(`.theme-pill button[data-theme="${theme}"]`);
+      if (activeBtn) activeBtn.classList.add("active");
     }
 
-    const newSha = data.sha;
+    const saved = localStorage.getItem("theme") || "dark";
+    document.body.classList.add(saved);
 
-    // premier load
-    if (!lastSha) {
-      const md = decodeBase64(data.content);
-      contentEl.innerHTML = marked.parse(md);
-      lastSha = newSha;
-      setStatus("synced", "🟢 SYNCED");
-      return;
-    }
-
-    // nouveau commit
-    if (newSha !== lastSha) {
-      setStatus("updating", "🟡 UPDATING...");
-
-      const md = decodeBase64(data.content);
-      contentEl.innerHTML = marked.parse(md);
-
-      lastSha = newSha;
-
-      setStatus("synced", "🟢 SYNCED");
-    } else {
-      setStatus("synced", "🟢 SYNCED");
-    }
-
-  } catch (err) {
-    console.error("ERROR:", err);
-    setStatus("outdated", "🔴 OUTDATED");
-  }
-}
-
-/* LOOP */
-syncFile();
-setInterval(syncFile, 5000);
-
-/* THEME */
-function setTheme(theme) {
-  document.body.classList.remove("dark", "light", "amoled");
-  document.body.classList.add(theme);
-
-  localStorage.setItem("theme", theme);
-
-  document.querySelectorAll(".theme-pill button")
-    .forEach(btn => btn.classList.remove("active"));
-
-  document.querySelector(`[data-theme="${theme}"]`)
-    ?.classList.add("active");
-}
-
-const saved = localStorage.getItem("theme") || "dark";
-document.body.classList.add(saved);
-document.querySelector(`[data-theme="${saved}"]`)
-  ?.classList.add("active");
-
-</script>
+    document.querySelector(`.theme-pill button[data-theme="${saved}"]`)
+      ?.classList.add("active");
+  </script>
 
 </body>
 </html>
