@@ -12,6 +12,38 @@
       zoom: 150%;
     }
     
+    .theme-bar {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 9999;
+    }
+    
+    .theme-pill {
+      display: flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(30, 30, 30, 0.8);
+      backdrop-filter: blur(10px);
+    }
+    
+    .theme-pill button {
+      border: none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      transition: 0.2s;
+      background: transparent;
+      color: white;
+    }
+    
+    .theme-pill button:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
     body {
       font-family: Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
       max-width: 900px;
@@ -47,6 +79,14 @@
 </head>
 
 <body>
+  <div class="theme-bar">
+    <div class="theme-pill">
+      <button onclick="setTheme('dark')">DARK</button>
+      <button onclick="setTheme('light')">LIGHT</button>
+      <button onclick="setTheme('amoled')">AMOLED</button>
+    </div>
+  </div>
+  
   <div id="content">Chargement...</div>
 
   <script>
@@ -63,6 +103,41 @@
 
     // refresh auto toutes les 30s (optionnel)
     setInterval(loadReadme, 30000);
+    
+    function setTheme(theme) {
+      const body = document.body;
+      
+      body.classList.remove("dark", "light", "amoled");
+      body.classList.add(theme);
+      
+      localStorage.setItem("theme", theme);
+      
+      applyTheme(theme);
+    }
+    
+    function applyTheme(theme) {
+      const body = document.body;
+      
+      if (theme === "dark") {
+        body.style.background = "#0f0f0f";
+        body.style.color = "white";
+      }
+      
+      if (theme === "light") {
+        body.style.background = "#ffffff";
+        body.style.color = "#111";
+      }
+      
+      if (theme === "amoled") {
+        body.style.background = "#000000";
+        body.style.color = "#ffffff";
+      }
+    }
+    
+    // load saved theme
+    const saved = localStorage.getItem("theme") || "dark";
+    setTheme(saved);
+  
   </script>
 </body>
 </html>
