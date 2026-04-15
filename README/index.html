@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>README</title>
+
+  <!-- Librairie Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background: #0f0f0f;
+      color: white;
+    }
+
+    code {
+      background: #222;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      overflow-x: auto;
+      border-radius: 8px;
+    }
+
+    a { color: #4ea1ff; }
+  </style>
+</head>
+
+<body>
+  <div id="content">Chargement...</div>
+
+  <script>
+    const url = "https://raw.githubusercontent.com/TON_USER/TON_REPO/main/README/README.md";
+
+    async function loadReadme() {
+      const res = await fetch(url + "?t=" + Date.now()); // évite cache
+      const md = await res.text();
+
+      document.getElementById("content").innerHTML = marked.parse(md);
+    }
+
+    loadReadme();
+
+    // refresh auto toutes les 30s (optionnel)
+    setInterval(loadReadme, 30000);
+  </script>
+</body>
+</html>
