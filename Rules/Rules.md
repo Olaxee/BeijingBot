@@ -1,3 +1,4 @@
+# TESTTTTTT
 ## [⚠] Avant de lire les règles du serveur, prenez connaissance de ceci. [⚠]
 ###### Les règles de notre serveur sont littéralement celles de la [Charte d'utilisation de la communauté Discord](https://discord.com/guidelines), réécrites comme si nous en étions les auteurs, afin que toutes les règles concernant la sexualité soient également applicables aux personnes de +18 ans. Nous avons aussi ajouté quelques précisions.
 ## [⚠] Merci d’avoir lu ceci, vous pouvez maintenant consulter les règles de notre serveur. [⚠]
