@@ -46,7 +46,7 @@ def get_date_string():
 
 
 # =========================
-# 🎫 TICKETS FIX
+# 🎫 TICKETS
 # =========================
 class TicketOpenView(discord.ui.View):
     def __init__(self):
@@ -130,31 +130,7 @@ class ConfirmCloseView(discord.ui.View):
 
 
 # =========================
-# 📩 ENVOI PANEL AUTO (FIX)
-# =========================
-async def send_ticket_panel():
-    await client.wait_until_ready()
-
-    for guild in client.guilds:
-        channel = discord.utils.get(guild.text_channels, name="📩・ticket")
-
-        if channel:
-            embed = discord.Embed(
-                title="🎫 Support & Tickets",
-                description=(
-                    "Avez vous besoin d'aide ?\n"
-                    "Avez vous besoin de contacter le staff ?\n"
-                    "Avez vous besoin d'info ?\n\n"
-                    "Ouvrez un ticket ci-dessous"
-                ),
-                color=discord.Color.green()
-            )
-
-            await channel.send(embed=embed, view=TicketOpenView())
-
-
-# =========================
-# 💬 COMMANDES (inchangé)
+# 💬 COMMANDES
 # =========================
 @client.event
 async def on_message(message):
@@ -167,6 +143,56 @@ async def on_message(message):
 
     bot_user = guild.me if guild else client.user
 
+    # =========================
+    # 🎫 +setticket
+    # =========================
+    if message.content.lower() == "+setticket":
+
+        if role not in message.author.roles:
+            return await message.channel.send(
+                embed=discord.Embed(
+                    description="❌ Tu n’as pas la permission.",
+                    color=discord.Color.red()
+                )
+            )
+
+        # Vérif si déjà un panel existe
+        for channel in guild.text_channels:
+            async for msg in channel.history(limit=50):
+                if msg.author == client.user and msg.components:
+                    return await message.channel.send(
+                        embed=discord.Embed(
+                            description="❌ Un panel ticket existe déjà.",
+                            color=discord.Color.red()
+                        )
+                    )
+
+        perms = message.channel.permissions_for(guild.me)
+
+        if not perms.send_messages:
+            return await message.channel.send(
+                embed=discord.Embed(
+                    description="❌ Impossible d'envoyer le panel (permissions).",
+                    color=discord.Color.red()
+                )
+            )
+
+        embed = discord.Embed(
+            title="🎫 Support & Tickets",
+            description=(
+                "Avez vous besoin d'aide ?\n"
+                "Avez vous besoin de contacter le staff ?\n"
+                "Avez vous besoin d'info ?\n\n"
+                "Ouvrez un ticket ci-dessous"
+            ),
+            color=discord.Color.green()
+        )
+
+        await message.channel.send(embed=embed, view=TicketOpenView())
+
+    # =========================
+    # 🔐 +gencode
+    # =========================
     if message.content.lower() == "+gencode":
 
         alphabet = string.ascii_letters + string.digits
@@ -184,6 +210,9 @@ async def on_message(message):
 
         return await message.channel.send(embed=embed)
 
+    # =========================
+    # ℹ HELP EMBED
+    # =========================
     def help_embed():
         return discord.Embed(
             title="ℹ +embed",
@@ -235,7 +264,7 @@ async def on_message(message):
 
 
 # =========================
-# 👋 JOIN SYSTEM (inchangé)
+# 👋 JOIN SYSTEM
 # =========================
 @client.event
 async def on_member_join(member):
@@ -273,12 +302,11 @@ async def on_member_join(member):
 
 
 # =========================
-# 🤖 READY (FIX PANEL)
+# 🤖 READY
 # =========================
 @client.event
 async def on_ready():
     print(f"Connecté en tant que {client.user}")
-    client.loop.create_task(send_ticket_panel())
 
 
 # =========================
