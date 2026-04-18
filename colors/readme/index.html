@@ -51,6 +51,30 @@
     a { color: #4ea1ff; text-decoration: none; }
     a:hover { text-decoration: underline; }
 
+    #content h1, #content h2, #content h3,
+    #content h4, #content h5, #content h6 {
+      position: relative;
+    }
+
+    .heading-anchor {
+      margin-left: 8px;
+      color: #4ea1ff;
+      opacity: 0;
+      font-size: 0.75em;
+      text-decoration: none !important;
+      transition: opacity 0.15s ease;
+      user-select: none;
+    }
+
+    #content h1:hover .heading-anchor,
+    #content h2:hover .heading-anchor,
+    #content h3:hover .heading-anchor,
+    #content h4:hover .heading-anchor,
+    #content h5:hover .heading-anchor,
+    #content h6:hover .heading-anchor {
+      opacity: 1;
+    }
+
     #content table {
       border-collapse: collapse;
       width: 100%;
@@ -196,6 +220,19 @@
 
         marked.setOptions({ gfm: true });
         document.getElementById("content").innerHTML = marked.parse(md);
+
+        document.querySelectorAll("#content h1, #content h2, #content h3, #content h4, #content h5, #content h6").forEach(h => {
+          const id = h.textContent.trim().toLowerCase()
+            .replace(/[^\w\s-]/g, "")
+            .replace(/\s+/g, "-");
+          h.id = id;
+
+          const anchor = document.createElement("a");
+          anchor.href = "#" + id;
+          anchor.className = "heading-anchor";
+          anchor.textContent = "#";
+          h.appendChild(anchor);
+        });
 
         document.querySelectorAll("#content img").forEach(img => {
           img.style.setProperty("width", "100%", "important");
