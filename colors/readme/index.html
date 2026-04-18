@@ -146,6 +146,13 @@
 
         document.getElementById("content").innerHTML = marked.parse(md);
 
+        document.querySelectorAll("#content img").forEach(img => {
+          img.style.setProperty("width", "100%", "important");
+          img.style.setProperty("max-height", "300px", "important");
+          img.style.setProperty("height", "auto", "important");
+          img.style.setProperty("object-fit", "contain", "important");
+        });
+
       } catch (e) {
         // ignore abort errors
       }
