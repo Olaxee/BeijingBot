@@ -28,12 +28,11 @@
       transition: background-color 0.35s ease, color 0.35s ease;
     }
 
-    
+    #content img {
       width: 100% !important;
       max-height: 525px !important;
       height: auto !important;
       object-fit: contain !important;
-      height: auto;
     }
 
     code {
@@ -51,6 +50,57 @@
 
     a { color: #4ea1ff; text-decoration: none; }
     a:hover { text-decoration: underline; }
+
+    #content table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.95em;
+    }
+
+    #content thead tr {
+      background: #4ea1ff22;
+      border-bottom: 2px solid #4ea1ff55;
+    }
+
+    #content th {
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: #4ea1ff;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-size: 0.85em;
+    }
+
+    #content td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    #content tr:last-child td {
+      border-bottom: none;
+    }
+
+    #content tbody tr:hover {
+      background: #ffffff08;
+      transition: background 0.15s ease;
+    }
+
+    body.light #content thead tr {
+      background: #4ea1ff18;
+      border-bottom: 2px solid #4ea1ff88;
+    }
+
+    body.light #content td {
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    body.light #content tbody tr:hover {
+      background: #00000008;
+    }
 
     .theme-bar {
       position: fixed;
@@ -144,6 +194,7 @@
         lastContentHash = hash;
         lastETag = etag;
 
+        marked.setOptions({ gfm: true });
         document.getElementById("content").innerHTML = marked.parse(md);
 
         document.querySelectorAll("#content img").forEach(img => {
